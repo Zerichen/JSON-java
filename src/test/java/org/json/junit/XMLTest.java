@@ -30,24 +30,11 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.json.XML;
-import org.json.XMLParserConfiguration;
-import org.json.XMLXsiTypeConverter;
+import org.json.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -606,6 +593,140 @@ public class XMLTest {
         String actualXML = "<nullValue>null</nullValue>";
         String resultXML = XML.toString(inputJSON);
         assertEquals(actualXML, resultXML);
+    }
+
+    @Test
+    public void shouldHandleValidJSONPointer()
+    {
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("books.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer jsonPointer = new JSONPointer("/catalog/book/0");
+                JSONObject actual = XML.toJSONObject(xmlReader, jsonPointer);
+                String json = "{\n" +
+                        "    \"author\": \"Gambardella, Matthew\",\n" +
+                        "    \"price\": 44.95,\n" +
+                        "    \"genre\": \"Computer\",\n" +
+                        "    \"description\": \"An in-depth look at creating applications\\n            with XML.\",\n" +
+                        "    \"id\": \"bk101\",\n" +
+                        "    \"title\": \"XML Developer's Guide\",\n" +
+                        "    \"publish_date\": \"2000-10-01\"\n" +
+                        "  }";
+                final JSONObject expected = new JSONObject(json);
+                Util.compareActualVsExpectedJsonObjects(actual,expected);
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+
+    @Test
+    public void shouldHandleInvalidJSONPointer()
+    {
+        try {
+            InputStream xmlStream = null;
+            JSONObject actual = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("books.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer jsonPointer = new JSONPointer("/catalog/book/100");
+                actual = XML.toJSONObject(xmlReader, jsonPointer);
+                String json = "{\n" +
+                        "    \"author\": \"Gambardella, Matthew\",\n" +
+                        "    \"price\": 44.95,\n" +
+                        "    \"genre\": \"Computer\",\n" +
+                        "    \"description\": \"An in-depth look at creating applications\\n            with XML.\",\n" +
+                        "    \"id\": \"bk101\",\n" +
+                        "    \"title\": \"XML Developer's Guide\",\n" +
+                        "    \"publish_date\": \"2000-10-01\"\n" +
+                        "  }";
+                final JSONObject expected = new JSONObject(json);
+                Util.compareActualVsExpectedJsonObjects(actual,expected);
+            } catch (Exception e) {
+                assertTrue("JSONObject should be empty", actual.isEmpty());
+            } catch (JSONException e) {
+                assertTrue("JSONObject should be empty", actual.isEmpty());
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+
+    @Test
+    public void shouldHandleValidJSONPointerReplacement()
+    {
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("books.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer jsonPointer = new JSONPointer("/catalog/book/1");
+                JSONObject sub = new JSONObject().put("key", "value");
+                JSONObject actual = XML.toJSONObject(xmlReader, jsonPointer, sub);
+                InputStream jsonStream = null;
+                try {
+                    jsonStream = XMLTest.class.getClassLoader().getResourceAsStream("books.json");
+                    final JSONObject expected = new JSONObject(new JSONTokener(jsonStream));
+                    Util.compareActualVsExpectedJsonObjects(actual,expected);
+                } finally {
+                    if (jsonStream != null) {
+                        jsonStream.close();
+                    }
+                }
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+
+    @Test
+    public void shouldHandleInvalidJSONPointerReplacement()
+    {
+        try {
+            InputStream xmlStream = null;
+            JSONObject actual = null;
+            JSONObject still = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("books.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                JSONPointer jsonPointer = new JSONPointer("/catalog/book/book");
+                JSONObject sub = new JSONObject().put("key", "value");
+                actual = XML.toJSONObject(xmlReader, jsonPointer, sub);
+                still = XML.toJSONObject(xmlReader);
+                InputStream jsonStream = null;
+                try {
+                    jsonStream = XMLTest.class.getClassLoader().getResourceAsStream("books.json");
+                    final JSONObject expected = new JSONObject(new JSONTokener(jsonStream));
+                    Util.compareActualVsExpectedJsonObjects(actual,expected);
+                } finally {
+                    if (jsonStream != null) {
+                        jsonStream.close();
+                    }
+                }
+            } catch (Exception e) {
+                assertEquals(actual, still);
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
     }
 
     /**
