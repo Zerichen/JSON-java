@@ -841,11 +841,12 @@ public class XML {
         return jo;
     }
 
-    public static JSONObject toJSONObject(Reader reader, JSONPointer path) throws JSONException, Exception {
+    public static JSONObject toJSONObject(Reader reader, JSONPointer path) throws Exception {
         JSONObject jo = new JSONObject();
         XMLTokener x = new XMLTokener(reader);
         String[] keys = path.toString().substring(1).split("/");
         ArrayList<String> stack = new ArrayList<String>();
+        Boolean found = false;
         for (String key : keys) {
             if (key.matches("\\d+")) {
                 int index = Integer.parseInt(key);
@@ -865,9 +866,9 @@ public class XML {
                     }
                 }
             } else {
-                Boolean found = trackTag(x, key, stack);
+                found = trackTag(x, key, stack);
                 if (!found) {
-                    throw new Exception("Invalid JSONPath");
+                    return jo;
                 }
             }
         }
@@ -879,42 +880,46 @@ public class XML {
         return (JSONObject) jo.get(lastKey);
     }
 
-    private static Boolean trackTag(XMLTokener x, String key, ArrayList<String> stack) throws JSONException {
-        if (x.more()) {
-            x.skipPast("<");
-            Object tk = x.nextToken();
-            if (tk instanceof String) {
-                if (key != null) {
-                    if (key.equals(tk)) {
-                        stack.add(key);
-                    } else {
-                        int curSize = stack.size();
-                        stack.add(tk.toString());
-                        Boolean found = false;
-                        while (!found) {
-                            while (stack.size() >= curSize) {
-                                if (stack.get(stack.size() - 1).equals(key)) {
-                                    found = true;
-                                    return found;
-                                }
-                                found = trackTag(x, key, stack);
-                                if (stack.size() < curSize) {
-                                    return found;
+    private static Boolean trackTag(XMLTokener x, String key, ArrayList<String> stack) throws Exception {
+        try {
+            if (x.more()) {
+                x.skipPast("<");
+                Object tk = x.nextToken();
+                if (tk instanceof String) {
+                    if (key != null) {
+                        if (key.equals(tk)) {
+                            stack.add(key);
+                        } else {
+                            int curSize = stack.size();
+                            stack.add(tk.toString());
+                            Boolean found = false;
+                            while (!found) {
+                                while (stack.size() >= curSize) {
+                                    if (stack.get(stack.size() - 1).equals(key)) {
+                                        return true;
+                                    }
+                                    found = trackTag(x, key, stack);
+                                    if (stack.size() < curSize) {
+                                        return false;
+                                    }
                                 }
                             }
+                            return found;
                         }
+                    } else {
+                        stack.add(tk.toString());
                     }
-                } else {
-                    stack.add(tk.toString());
+                } else if (tk instanceof Character) {
+                    if (tk.equals('/')) {
+                        stack.remove(stack.size()-1);
+                    }
                 }
-            } else if (tk instanceof Character) {
-                if (tk.equals('/')) {
-                    stack.remove(stack.size()-1);
-                }
+                return true;
             }
-            return true;
+            return false;
+        } catch (JSONException e) {
+            throw new Exception("");
         }
-        return false;
     }
 
     public static JSONObject toJSONObject(Reader reader, JSONPointer path, JSONObject replacement) throws Exception {
