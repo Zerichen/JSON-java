@@ -403,7 +403,6 @@ public class XML {
                             return false;
                         } else if (token instanceof String) {
                             string = (String) token;
-                            System.out.println(string + "token!!!");
                             if (string.length() > 0) {
                                 if(xmlXsiTypeConverter != null) {
                                     jsonObject.accumulate(config.getcDataTagName(),
@@ -583,7 +582,6 @@ public class XML {
                             return false;
                         } else if (token instanceof String) {
                             string = (String) token;
-                            System.out.println(string + "token!!!");
                             if (string.length() > 0) {
                                 if(xmlXsiTypeConverter != null) {
                                     jsonObject.accumulate(config.getcDataTagName(),
@@ -848,12 +846,7 @@ public class XML {
         XMLTokener x = new XMLTokener(reader);
         String[] keys = path.toString().substring(1).split("/");
         ArrayList<String> stack = new ArrayList<String>();
-        if (x.more()) {
-            x.skipPast("<");
-            x.nextToken();
-        }
         for (String key : keys) {
-            System.out.println(key);
             if (key.matches("\\d+")) {
                 int index = Integer.parseInt(key);
                 if (index > 0) {
@@ -871,7 +864,6 @@ public class XML {
                         x.nextToken();
                     }
                 }
-                System.out.println(index + " " + stack);
             } else {
                 Boolean found = trackTag(x, key, stack);
                 if (!found) {
@@ -879,8 +871,12 @@ public class XML {
                 }
             }
         }
-        parsee(x, jo, stack.get(stack.size() - 1), null, null);
-        return jo;
+        String lastKey = stack.get(stack.size() - 1);
+        parsee(x, jo, lastKey, null, XMLParserConfiguration.ORIGINAL);
+        if (jo.get(lastKey) instanceof String) {
+            return jo;
+        }
+        return (JSONObject) jo.get(lastKey);
     }
 
     private static Boolean trackTag(XMLTokener x, String key, ArrayList<String> stack) throws JSONException {
@@ -897,7 +893,6 @@ public class XML {
                         Boolean found = false;
                         while (!found) {
                             while (stack.size() >= curSize) {
-                                System.out.println(stack + " stack");
                                 if (stack.get(stack.size() - 1).equals(key)) {
                                     found = true;
                                     return found;

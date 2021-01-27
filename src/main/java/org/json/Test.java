@@ -13,12 +13,16 @@ public class Test {
         try {
             final FileReader fileReader = new FileReader(file);
             final BufferedReader bufferedReader = new BufferedReader(fileReader);
-//            XML.toJSONObject(bufferedReader, jsonPointer);
-            JSONObject sub = new JSONObject().put("key", "value");
-            JSONObject js = XML.toJSONObject(bufferedReader, jsonPointer, sub);
-            System.out.println(js.toString(4));
+            System.out.println(XML.toJSONObject(bufferedReader, jsonPointer).toString(4));
+
+//            XML.toJSONObject(bufferedReader);
+//            JSONObject sub = new JSONObject().put("key", "value");
+//            JSONObject js = XML.toJSONObject(bufferedReader, jsonPointer, sub);
+//            System.out.println(js.toString(4));
         } catch (FileNotFoundException err) {
             System.out.format("%s.xml not found!", filename);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
