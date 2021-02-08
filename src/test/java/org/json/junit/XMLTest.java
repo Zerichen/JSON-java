@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.json.*;
 import org.junit.Rule;
@@ -714,6 +715,69 @@ public class XMLTest {
                 }
             } catch (Exception e) {
                 assertEquals(actual, still);
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+
+    @Test
+    public void shouldHandleValidJSONKeyTransformation()
+    {
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("books2.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                Function<String, String> transform = (s) -> "SWE262_" + s;
+                JSONObject actual = XML.toJSONObject(xmlReader, transform);
+                InputStream jsonStream = null;
+                try {
+                    jsonStream = XMLTest.class.getClassLoader().getResourceAsStream("transform.json");
+                    final JSONObject expected = new JSONObject(new JSONTokener(jsonStream));
+                    Util.compareActualVsExpectedJsonObjects(actual,expected);
+                } finally {
+                    if (jsonStream != null) {
+                        jsonStream.close();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
+    }
+
+    @Test
+    public void shouldHandleInvalidJSONKeyTransformation()
+    {
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("books2.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                Function<String, String> transform = (s) -> "";
+                JSONObject actual = XML.toJSONObject(xmlReader, transform);
+                InputStream jsonStream = null;
+                JSONObject expected = null;
+                try {
+                    jsonStream = XMLTest.class.getClassLoader().getResourceAsStream("invalid.json");
+                    expected = new JSONObject(new JSONTokener(jsonStream));
+                } catch (JSONException e) {
+                    assertEquals(expected, actual);
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             } finally {
                 if (xmlStream != null) {
                     xmlStream.close();
