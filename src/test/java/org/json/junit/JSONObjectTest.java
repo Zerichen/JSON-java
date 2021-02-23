@@ -34,10 +34,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -50,6 +47,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.json.CDL;
 import org.json.JSONArray;
@@ -93,6 +91,27 @@ public class JSONObjectTest {
      *  output to guarantee that we are always writing valid JSON. 
      */
     static final Pattern NUMBER_PATTERN = Pattern.compile("-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?");
+
+    @Test
+    public void verifyToStream() {
+        InputStream jsonStream = XMLTest.class.getClassLoader().getResourceAsStream("books.json");
+        final JSONObject json = new JSONObject(new JSONTokener(jsonStream));
+        List<String> outputAuthor = json.toStream().map(j -> (String) j.get("author")).collect(Collectors.toList());
+        List<String> outputDate = json.toStream().map(j -> (String) j.get("publish_date")).collect(Collectors.toList());
+        List<String> expectedAuthor = new ArrayList<>();
+        List<String> expectedDate = new ArrayList<>();
+        String[] authorVals = {"Gambardella, Matthew", "Ralls, Kim", "Corets, Eva", "Corets, Eva", "Corets, Eva", "Randall, Cynthia", "Thurman, Paula", "Knorr, Stefan", "Kress, Peter", "O'Brien, Tim", "O'Brien, Tim", "Galos, Mike"};
+        String[] dateVals = {"2000-10-01", "2000-12-16", "2000-11-17", "2001-03-10", "2001-09-10", "2000-09-02", "2000-11-02", "2000-12-06", "2000-11-02", "2000-12-09", "2000-12-01", "2001-04-16"};
+        for (String s : authorVals) {
+            expectedAuthor.add(s);
+        }
+        for (String s : dateVals) {
+            expectedDate.add(s);
+        }
+        assertEquals(expectedAuthor, outputAuthor);
+        assertEquals(expectedDate, outputDate);
+    }
+
 
     /**
      * Tests that the similar method is working as expected.

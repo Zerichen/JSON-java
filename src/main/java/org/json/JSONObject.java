@@ -46,6 +46,7 @@ import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * A JSONObject is an unordered collection of name/value pairs. Its external
@@ -458,6 +459,36 @@ public class JSONObject {
      */
     protected JSONObject(int initialCapacity){
         this.map = new HashMap<String, Object>(initialCapacity);
+    }
+
+    public Stream<JSONObject> toStream() {
+        Stream.Builder builder = Stream.builder();
+        for (Entry<String, Object> obj : this.map.entrySet()) {
+            if (obj.getValue() instanceof JSONObject) {
+                addLeaf(builder, (JSONObject) obj.getValue());
+            } else if (obj.getValue() instanceof JSONArray) {
+                for (Object object : (JSONArray) obj.getValue()) {
+                    if (object instanceof JSONObject) {
+                        builder.accept(object);
+                    }
+                }
+            }
+        }
+        return builder.build();
+    }
+
+    private void addLeaf(Stream.Builder b, JSONObject jsonObject) {
+        for (Entry<String, Object> obj : jsonObject.entrySet()) {
+            if (obj.getValue() instanceof JSONObject) {
+                addLeaf(b, (JSONObject) obj.getValue());
+            } else if (obj.getValue() instanceof JSONArray) {
+                for (Object object : (JSONArray) obj.getValue()) {
+                    if (object instanceof JSONObject) {
+                        b.accept(object);
+                    }
+                }
+            }
+        }
     }
 
     /**

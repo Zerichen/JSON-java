@@ -8,7 +8,15 @@
     "title": "XML Developer's Guide",
     "publish_date": "2000-10-01"
   },
-  {"key": "value"},
+  {
+    "author": "Ralls, Kim",
+    "title": "Midnight Rain",
+    "publish_date": "2000-12-16",
+    "genre": "Fantasy",
+    "description": "A former architect battles corporate zombies,\n            an evil sorceress, and her own childhood to become queen\n            of the world.",
+    "price": 5.95,
+    "id": "bk102"
+  },
   {
     "author": "Corets, Eva",
     "price": 5.95,
