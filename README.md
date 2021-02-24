@@ -35,3 +35,9 @@ I have pushed the lastest org.json library in the repository, dependency is also
 
 ### Comments
 * As we are reading and transforming the xml concurrently, it will reduce the total time of passing the object again
+
+#### Milestone 4
+* One utility features have been implemented according to the requirement, which starts from line 464 in file `JSONObject.java`
+* One validation check has been added in `JSONObjectTest.java`, which is called `verifyToStream` from line 96
+* Do `cd yourpath-to-this-project` and then `mvn install`, `mvn compile` and `mvn clean test` to run the unit test
+* `toStream()` will return all the leaf json objects inside a given json object as a stream
