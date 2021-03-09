@@ -41,3 +41,8 @@ I have pushed the lastest org.json library in the repository, dependency is also
 * One validation check has been added in `JSONObjectTest.java`, which is called `verifyToStream` from line 96
 * Do `cd yourpath-to-this-project` and then `mvn install`, `mvn compile` and `mvn clean test` to run the unit test
 * `toStream()` will return all the leaf json objects inside a given json object as a stream
+
+#### Milestone 5
+* One utility features have been implemented according to the requirement, which starts from line 1039 in file `JSONObject.java`
+* One validation check has been added in `JSONObjectTest.java`, which is called `shouldHandleAsynchronousCall` from line 601
+* Do `cd yourpath-to-this-project` and then `mvn install`, `mvn compile` and `mvn clean test` to run the unit test

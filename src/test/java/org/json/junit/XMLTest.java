@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.json.*;
@@ -594,6 +595,38 @@ public class XMLTest {
         String actualXML = "<nullValue>null</nullValue>";
         String resultXML = XML.toString(inputJSON);
         assertEquals(actualXML, resultXML);
+    }
+
+    @Test
+    public void shouldHandleAsynchronousCall() {
+        try {
+            InputStream xmlStream = null;
+            try {
+                xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("books2.xml");
+                Reader xmlReader = new InputStreamReader(xmlStream);
+                Function<JSONObject, JSONObject> callback = (json) -> json.put("TESTKEY", "TESTVALUE");
+                Consumer<Exception> handler = (e) -> System.out.println("ERROR HANDLER TRIGGERED!");
+                JSONObject actual = XML.toJSONObject(xmlReader, callback, handler);
+                InputStream jsonStream = null;
+                try {
+                    jsonStream = XMLTest.class.getClassLoader().getResourceAsStream("asynchronous.json");
+                    final JSONObject expected = new JSONObject(new JSONTokener(jsonStream));
+                    Util.compareActualVsExpectedJsonObjects(actual,expected);
+                } finally {
+                    if (jsonStream != null) {
+                        jsonStream.close();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (xmlStream != null) {
+                    xmlStream.close();
+                }
+            }
+        } catch (IOException e) {
+            fail("file writer error: " +e.getMessage());
+        }
     }
 
     @Test

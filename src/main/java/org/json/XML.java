@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 
@@ -1033,6 +1034,17 @@ public class XML {
             }
         }
         return jo;
+    }
+
+    public static JSONObject toJSONObject(Reader reader, Function<JSONObject, JSONObject> callback, Consumer<Exception> exception) {
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = callback.apply(toJSONObject(reader, XMLParserConfiguration.ORIGINAL));
+        } catch (Exception e) {
+            exception.accept(e);
+        } finally {
+            return jsonObject;
+        }
     }
 
     public static JSONObject toJSONObject(Reader reader, JSONPointer path) throws Exception {
